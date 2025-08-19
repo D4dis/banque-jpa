@@ -20,64 +20,39 @@ public class Main {
             // Commencer une transaction
             em.getTransaction().begin();
 
-            // 1. Creer une banque
-            Banque banque = new Banque();
-            banque.setNom("Banque Populaire");
-            banque.setClients(new ArrayList<>());
+            // 1. Créer une banque avec constructeur complet
+            Banque banque = new Banque(null, "Banque Populaire", new ArrayList<>());
             em.persist(banque);
 
-            // 2. Creer une adresse
-            Adresse adresse = new Adresse(123, "Rue de la Republique", 75001, "Paris");
+            // 2. Créer une adresse avec constructeur
+            Adresse adresse = new Adresse(123, "Rue de la République", 75001, "Paris");
 
-            // 3. Creer un client
-            Client client = new Client();
-            client.setNom("Dupont");
-            client.setPrenom("Jean");
-            client.setDateNaissance(LocalDate.of(1985, 5, 15));
-            client.setAdresse(adresse);
-            client.setBanque(banque);
-            client.setComptes(new ArrayList<>());
+            // 3. Créer un client avec constructeur complet
+            Client client = new Client(null, "Dupont", "Jean", LocalDate.of(1985, 5, 15), adresse, banque, new ArrayList<>());
             em.persist(client);
 
-            // 4. Creer un compte courant (classe de base Compte)
-            Compte compteCourant = new Compte();
-            compteCourant.setSolde(1500.0);
-            compteCourant.setClient(client);
-            compteCourant.setOperations(new ArrayList<>());
+            // 4. Créer un compte courant avec constructeur complet
+            Compte compteCourant = new Compte(null, 1500.0, client, new ArrayList<>());
             em.persist(compteCourant);
 
-            // 5. Creer un Livret A
-            LivretA livretA = new LivretA();
-            livretA.setSolde(5000.0);
+            // 5. Créer un Livret A avec constructeur complet
+            LivretA livretA = new LivretA(null, 5000.0, client, new ArrayList<>());
             livretA.setTaux(0.75);
-            livretA.setClient(client);
-            livretA.setOperations(new ArrayList<>());
             em.persist(livretA);
 
-            // 6. Creer une Assurance Vie
-            AssuranceVie assuranceVie = new AssuranceVie();
-            assuranceVie.setSolde(15000.0);
+            // 6. Créer une Assurance Vie avec constructeur complet
+            AssuranceVie assuranceVie = new AssuranceVie(null, 15000.0, client, new ArrayList<>());
             assuranceVie.setTaux(2.5);
             assuranceVie.setDateFin(LocalDate.of(2030, 12, 31));
-            assuranceVie.setClient(client);
-            assuranceVie.setOperations(new ArrayList<>());
             em.persist(assuranceVie);
 
-            // 7. Creer des operations
-            Operation operation1 = new Operation();
-            operation1.setDate(LocalDateTime.now().minusDays(5));
-            operation1.setMontant(-50.0);
-            operation1.setMotif("Retrait DAB");
-            operation1.setCompte(compteCourant);
+            // 7. Créer des opérations avec constructeur complet
+            Operation operation1 = new Operation(null, LocalDateTime.now().minusDays(5), -50.0, "Retrait DAB", compteCourant);
             em.persist(operation1);
 
-            // 8. Creer un virement
-            Virement virement = new Virement();
-            virement.setDate(LocalDateTime.now().minusDays(2));
-            virement.setMontant(-200.0);
-            virement.setMotif("Virement vers epargne");
+            // 8. Créer un virement avec constructeur complet
+            Virement virement = new Virement(null, LocalDateTime.now().minusDays(2), -200.0, "Virement vers épargne", compteCourant);
             virement.setBeneficiaire("Livret A");
-            virement.setCompte(compteCourant);
             em.persist(virement);
 
             // 9. Ajouter les comptes au client
@@ -92,32 +67,6 @@ public class Main {
             em.getTransaction().commit();
 
             System.out.println("Donnees inserees avec succes !");
-
-            // Test de lecture pour verification
-            System.out.println("\n--- Verification des donnees ---");
-            Client clientLu = em.find(Client.class, client.getId());
-            System.out.println("Client: " + clientLu.getPrenom() + " " + clientLu.getNom());
-            System.out.println("Adresse: " + clientLu.getAdresse().getNumero() + " " +
-                    clientLu.getAdresse().getRue() + ", " +
-                    clientLu.getAdresse().getCodePostal() + " " +
-                    clientLu.getAdresse().getVille());
-            System.out.println("Banque: " + clientLu.getBanque().getNom());
-            System.out.println("Nombre de comptes: " + clientLu.getComptes().size());
-
-            for (Compte compte : clientLu.getComptes()) {
-                String typeCompte = compte.getClass().getSimpleName();
-                System.out.println("- " + typeCompte + " (ID: " + compte.getNumero() +
-                        ", Solde: " + compte.getSolde() + "€)");
-
-                // Afficher les operations de chaque compte
-                if (!compte.getOperations().isEmpty()) {
-                    System.out.println("  Operations:");
-                    for (Operation op : compte.getOperations()) {
-                        System.out.println("    * " + op.getMotif() + ": " + op.getMontant() + "€");
-                    }
-                }
-            }
-
         } catch (Exception e) {
             if (em.getTransaction().isActive()) {
                 em.getTransaction().rollback();
